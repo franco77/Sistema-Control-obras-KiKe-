@@ -8,6 +8,7 @@ use App\Livewire\Concerns\WithToasts;
 use App\Models\Setting;
 use App\Models\Trade;
 use App\Services\Branding\LogoService;
+use App\Support\UploadEnvironment;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -167,6 +168,9 @@ class SettingsPage extends Component
             'groups' => collect(self::SCHEMA)->groupBy(fn (array $meta) => $meta[2], preserveKeys: true),
             'trades' => Trade::orderBy('position')->get(),
             'logoUrl' => app(LogoService::class)->url(),
+            // Si el entorno no puede recibir ficheros, mejor decirlo aqui
+            // que dejar que la subida falle con un mensaje generico.
+            'uploadProblem' => UploadEnvironment::cachedProblem(),
         ]);
     }
 }

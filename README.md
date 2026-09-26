@@ -9,7 +9,7 @@ versionados, ejecución de obra y **portal del cliente sin contraseña**.
   <img alt="Livewire 3" src="https://img.shields.io/badge/Livewire-3-4E56A6?logo=livewire&logoColor=white">
   <img alt="Tailwind CSS 3" src="https://img.shields.io/badge/Tailwind-3-06B6D4?logo=tailwindcss&logoColor=white">
   <img alt="MariaDB" src="https://img.shields.io/badge/MariaDB%20%2F%20MySQL-8-003545?logo=mariadb&logoColor=white">
-  <img alt="Tests" src="https://img.shields.io/badge/tests-187%20passing-2ea44f">
+  <img alt="Tests" src="https://img.shields.io/badge/tests-213%20passing-2ea44f">
 </p>
 
 ---
@@ -26,6 +26,7 @@ versionados, ejecución de obra y **portal del cliente sin contraseña**.
 - [Usuarios de prueba](#usuarios-de-prueba)
 - [Procesos en segundo plano](#procesos-en-segundo-plano)
 - [Tests](#tests)
+- [Resolución de problemas](#resolución-de-problemas)
 - [Estructura del proyecto](#estructura-del-proyecto)
 - [Antes de pasar a producción](#antes-de-pasar-a-producción)
 - [Documentación](#documentación)
@@ -213,7 +214,7 @@ Tres reglas que se respetan en todo el código:
 |---|---|---|---|
 | **45** tablas | **29** modelos | **22** enums de dominio | **14** servicios |
 | **38** componentes Livewire | **88** vistas Blade | **13** notificaciones | **9** policies |
-| **37** migraciones | **4** tareas programadas | **187** tests | ~**11.400** líneas en `app/` |
+| **37** migraciones | **5** tareas programadas | **213** tests | ~**11.700** líneas en `app/` |
 
 ### Servicios de dominio
 
@@ -337,6 +338,7 @@ En producción basta un cron para el planificador:
 | `crm:notify-expiring-documents` | diario 07:30 | Avisa de seguros, PRL y RETA por caducar |
 | `crm:notify-delayed-projects` | laborables 08:00 | Alerta de obras fuera de plazo |
 | `crm:send-event-reminders` | cada 15 min | Recordatorios de agenda |
+| `crm:check-uploads` | manual | Verifica que el servidor puede recibir ficheros |
 
 ---
 
@@ -348,7 +350,7 @@ php artisan test
 
 Requiere una base de datos `crm_reformas_test` (configurada en `phpunit.xml`).
 
-**187 tests, 422 aserciones.** Cubren el cálculo de presupuestos, la máquina de estados,
+**213 tests, 472 aserciones.** Cubren el cálculo de presupuestos, la máquina de estados,
 el versionado, la conversión a obra, el avance ponderado, la asignación de proveedores, la
 aprobación de extras, la subida del logo y la seguridad del portal.
 
@@ -409,6 +411,44 @@ Detalle completo en [docs/ESTRUCTURA.md](docs/ESTRUCTURA.md).
       y procedimiento de borrado. Se manejan datos personales de clientes y autónomos.
 - [ ] **Monitorización** de errores y alerta si la cola se atasca.
 - [ ] **Probar una obra real de principio a fin** antes de migrar el histórico.
+
+---
+
+## Resolución de problemas
+
+### «The logo failed to upload» / no se suben ficheros
+
+Antes de buscar en la aplicación, comprueba el entorno:
+
+```bash
+php artisan crm:check-uploads
+```
+
+PHP escribe cada fichero subido en un directorio temporal **antes** de que la
+aplicación lo vea. Si ese directorio no sirve, la subida falla dentro del
+framework y el navegador solo muestra un mensaje genérico.
+
+En **Windows con Laragon** ocurre de serie: sin `upload_tmp_dir` definido, PHP usa
+`C:\Windows\Temp`, donde el proceso del servidor web puede *crear* ficheros pero
+`realpath()` falla por las ACL del sistema. Laravel hace
+`fopen($file->getRealPath())` para mover el fichero y revienta con
+*«Path cannot be empty»*. Solución: define un directorio propio en `php.ini` y
+reinicia el servidor web.
+
+```ini
+upload_tmp_dir = "C:/laragon/tmp"
+```
+
+En Linux basta con que `/tmp` (o el `upload_tmp_dir` configurado) sea escribible por
+el usuario de PHP-FPM.
+
+La pantalla de Configuración muestra un aviso explicando la causa cuando detecta
+este problema, en lugar de dejar que la subida falle sin explicación.
+
+### Los botones no responden y no hay ningún error
+
+Casi siempre es una segunda instancia de Alpine. `resources/js/app.js` no debe
+importar ni arrancar Alpine: lo hace Livewire. Lo vigila `FrontendSetupTest`.
 
 ---
 

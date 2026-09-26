@@ -5,6 +5,23 @@
         <div class="space-y-6 lg:col-span-2">
             {{-- Logo: formulario propio, porque sube fichero y no debe
                  arrastrar consigo el resto de la configuración. --}}
+            @if ($uploadProblem)
+                <div class="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-500/30 dark:bg-red-500/10">
+                    <x-icon name="warning" class="mt-0.5 h-5 w-5 shrink-0 text-red-500" />
+                    <div class="min-w-0">
+                        <p class="text-sm font-medium text-red-800 dark:text-red-300">
+                            Este servidor no puede recibir ficheros
+                        </p>
+                        <p class="mt-1 text-xs text-red-700 dark:text-red-400">{{ $uploadProblem }}</p>
+                        <p class="mt-1 text-xs text-red-700 dark:text-red-400">
+                            Afecta al logo y a cualquier subida de documentos o fotos. Ejecuta
+                            <code class="rounded bg-red-100 px-1 dark:bg-red-500/20">php artisan crm:check-uploads</code>
+                            para ver el detalle.
+                        </p>
+                    </div>
+                </div>
+            @endif
+
             <x-card title="Logo de la empresa"
                     subtitle="Aparece en el panel, en el portal del cliente y en la cabecera de los PDF.">
                 <div class="flex flex-wrap items-start gap-6">
