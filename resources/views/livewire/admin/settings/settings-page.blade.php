@@ -90,16 +90,31 @@
         </div>
 
         <x-card title="Oficios" subtitle="Clasifican proveedores, partidas, fases y tareas">
-            <form wire:submit="addTrade" class="mb-4 flex gap-2">
-                <x-input wire:model="tradeForm.name" placeholder="Nuevo oficio" class="flex-1" />
-                <x-select wire:model="tradeForm.color" class="w-28 text-xs">
-                    @foreach (['blue', 'indigo', 'green', 'amber', 'red', 'purple', 'teal', 'pink', 'orange', 'gray'] as $color)
-                        <option value="{{ $color }}">{{ $color }}</option>
-                    @endforeach
-                </x-select>
-                <x-btn type="submit" size="sm">+</x-btn>
+            {{-- Dos filas: en esta columna estrecha, el nombre necesita todo el
+                 ancho para poder escribir con comodidad. --}}
+            <form wire:submit="addTrade" class="mb-4 space-y-2">
+                <x-input wire:model="tradeForm.name" placeholder="Nombre del oficio" />
+
+                @error('tradeForm.name')
+                    <p class="text-xs text-red-600">{{ $message }}</p>
+                @enderror
+
+                <div class="flex items-center gap-2">
+                    <x-select wire:model.live="tradeForm.color" class="w-32 shrink-0 text-xs">
+                        @foreach (['blue', 'indigo', 'green', 'amber', 'red', 'purple', 'teal', 'pink', 'orange', 'gray'] as $color)
+                            <option value="{{ $color }}">{{ $color }}</option>
+                        @endforeach
+                    </x-select>
+
+                    {{-- Vista previa: elegir el color a ciegas por su nombre en
+                         inglés no dice gran cosa. --}}
+                    <x-badge :color="$tradeForm['color']" dot class="shrink-0">
+                        {{ $tradeForm['color'] }}
+                    </x-badge>
+
+                    <x-btn type="submit" size="sm" class="ml-auto shrink-0">Añadir</x-btn>
+                </div>
             </form>
-            @error('tradeForm.name') <p class="-mt-3 mb-3 text-xs text-red-600">{{ $message }}</p> @enderror
 
             <div class="space-y-1.5">
                 @foreach ($trades as $trade)
